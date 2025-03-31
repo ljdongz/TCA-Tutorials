@@ -29,7 +29,7 @@
 		5717F5E42D97D910005FE0BF /* Exceptions for "TCA-Tutorials" folder in "TCA-Tutorials" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 574237A92D32C60E00FE015C /* TCA-Tutorials */;
 		};

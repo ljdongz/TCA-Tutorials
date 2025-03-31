@@ -8,7 +8,7 @@
 import SwiftUI
 import ComposableArchitecture
 
-struct ContentView: View {
+struct CounterView: View {
     let store: StoreOf<CounterFeature>
     
     var body: some View {
@@ -66,7 +66,7 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(store: .init(
+    CounterView(store: .init(
         initialState: CounterFeature.State(),
         reducer: {
             CounterFeature()
