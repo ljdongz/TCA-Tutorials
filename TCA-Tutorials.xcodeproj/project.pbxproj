@@ -77,7 +77,9 @@
 				5717F5EA2D97DF72005FE0BF /* TCA-TutorialsTests */,
 				574237AB2D32C60E00FE015C /* Products */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 		574237AB2D32C60E00FE015C /* Products */ = {
 			isa = PBXGroup;
@@ -388,7 +390,7 @@
 				DEVELOPMENT_TEAM = 5DFZR8RCQR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "TCA-Tutorials/Info.plist";
+				INFOPLIST_FILE = "TCA-Tutorials/Resources/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -418,7 +420,7 @@
 				DEVELOPMENT_TEAM = 5DFZR8RCQR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "TCA-Tutorials/Info.plist";
+				INFOPLIST_FILE = "TCA-Tutorials/Resources/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
