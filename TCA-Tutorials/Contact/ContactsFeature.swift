@@ -32,17 +32,20 @@ struct ContactsFeature {
     //    case alert(PresentationAction<Alert>)
     case destination(PresentationAction<Destination.Action>)
     
+    @CasePathable
     enum Alert: Equatable {
       case confirmDeletion(id: Contact.ID)
     }
   }
+  
+  @Dependency(\.uuid) var uuid
   
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
       case .addButtonTapped:
         state.destination = .addContact(
-          AddContactFeature.State(contact: Contact(id: UUID(), name: ""))
+          AddContactFeature.State(contact: Contact(id: self.uuid(), name: ""))
         )
         return .none
         
@@ -59,13 +62,7 @@ struct ContactsFeature {
         return .none
         
       case let .deleteButtonTapped(id: id):
-        state.destination = .alert(.init(title: {
-          TextState("Are you sure?")
-        }, actions: {
-          ButtonState(role: .destructive, action: .confirmDeletion(id: id)) {
-            TextState("Delete")
-          }
-        }))
+        state.destination = .alert(.deleteConfirmation(id: id))
         
         return .none
       }
@@ -83,3 +80,16 @@ extension ContactsFeature {
 }
 
 extension ContactsFeature.Destination.State: Equatable {}
+
+extension AlertState where Action == ContactsFeature.Action.Alert {
+  static func deleteConfirmation(id: UUID) -> Self {
+    AlertState {
+      TextState("Are you sure?")
+    } actions: {
+      ButtonState(role: .destructive, action: .confirmDeletion(id: id)) {
+        TextState("Delete")
+      }
+    }
+
+  }
+}

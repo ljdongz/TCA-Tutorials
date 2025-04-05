@@ -21,6 +21,7 @@ struct AddContactFeature {
     case saveButtonTapped
     case setName(String)
     
+    @CasePathable
     // 부모가 수신할 수 있는 액션을 정의
     enum Delegate: Equatable {
       case saveContact(Contact)
