@@ -22,6 +22,8 @@ struct ContactsFeature {
     //    @Presents var addContact: AddContactFeature.State?
     //    @Presents var alert: AlertState<Action.Alert>?
     @Presents var destination: Destination.State?
+    
+    var path = StackState<ContactDetailFeature.State>()
   }
   
   enum Action {
@@ -31,6 +33,8 @@ struct ContactsFeature {
     //    case addContact(PresentationAction<AddContactFeature.Action>)
     //    case alert(PresentationAction<Alert>)
     case destination(PresentationAction<Destination.Action>)
+    
+    case path(StackActionOf<ContactDetailFeature>)
     
     @CasePathable
     enum Alert: Equatable {
@@ -57,7 +61,7 @@ struct ContactsFeature {
         state.contacts.remove(id: id)
         return .none
         
-      // 다른 destination 작업을 수행할 필요가 없음을 알림
+        // 다른 destination 작업을 수행할 필요가 없음을 알림
       case .destination:
         return .none
         
@@ -65,9 +69,20 @@ struct ContactsFeature {
         state.destination = .alert(.deleteConfirmation(id: id))
         
         return .none
+        
+      case let .path(.element(id: id, action: .delegate(.confirmDeletion))):
+        guard let detailState = state.path[id: id] else { return .none }
+        state.contacts.remove(id: detailState.contact.id)
+        return .none
+        
+      case .path:
+        return .none
       }
     }
     .ifLet(\.$destination, action: \.destination)
+    .forEach(\.path, action: \.path) {
+      ContactDetailFeature()
+    }
   }
 }
 
