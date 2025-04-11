@@ -21,10 +21,10 @@ struct ContactsFeature {
     
     /// [@presents]
     /// 내비게이션을 유도하기 위한 상태
-    // @Presents var addContact: AddContactFeature.State?
-    // @Presents var alert: AlertState<Action.Alert>?
     @Presents var destination: Destination.State?
     
+    /// [StackState]
+    /// 현재 스택에 푸시된 데이터 목록 (여기서는 ContactDetailFeature.State)
     var path = StackState<ContactDetailFeature.State>()
   }
   
@@ -34,13 +34,17 @@ struct ContactsFeature {
     
     /// [PresentationAction]
     /// 자식 Feature에서 전송된 모든 Action을 관찰할 수 있음
-    //  case addContact(PresentationAction<AddContactFeature.Action>)
-    //  case alert(PresentationAction<Alert>)
     case destination(PresentationAction<Destination.Action>)
     
+    /// [StackActionOf]
+    /// 요소를 스택에 푸시하거나 팝하는 것과 같이
+    /// 스택 내에서 발생할 수 있는 작업이나 스택 내 특정 기능에서 발생하는 작업
     case path(StackActionOf<ContactDetailFeature>)
     
+    /// [@CasePathable]
+    /// key path dot-chaning 구문을 사용할 수 있도록 함 (ContactsFeatureTests.swift)
     @CasePathable
+    /// Alert에서 동작될 액션 정의
     enum Alert: Equatable {
       case confirmDeletion(id: Contact.ID)
     }
@@ -51,21 +55,6 @@ struct ContactsFeature {
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
-        
-      // MARK: - Destination 열거형을 사용하지 않은 예제
-      // case .addButtonTapped:
-      //   state.addContact = AddContactFeature.State(
-      //     contact: Contact(id: UUID(), name: "")
-      //   )
-      //   return .none
-      //
-      // case let .addContact(.presented(.delegate(.saveContact(contact)))):
-      //   state.contacts.append(contact)
-      //   return .none
-      //
-      // case .addContact:
-      //   return .none
-      // }
       
       // MARK: - Destination을 사용한 예제
       case .addButtonTapped:
@@ -95,7 +84,9 @@ struct ContactsFeature {
         
         return .none
         
+      /// id : StackElementID
       case let .path(.element(id: id, action: .delegate(.confirmDeletion))):
+        /// path 배열에서 id가 일치하는 요소를 찾는 StackState의 subscript 문법
         guard let detailState = state.path[id: id] else { return .none }
         state.contacts.remove(id: detailState.contact.id)
         return .none
@@ -105,13 +96,19 @@ struct ContactsFeature {
       }
     }
     /// [ifLet]
-    /// 부모 state의 옵셔널 프로퍼티에 대해 작동하는 부모 도메인에 자식 리듀서를 포함
+    /// 트리 기반 Navigate
+    /// 부모 state의 옵셔널 프로퍼티(Destination.State?)에 대해 작동하는 부모 도메인(destination)에
+    /// 자식 리듀서를 포함
     /// 부모 Feature와 자식 Feature를 통합
-    // .ifLet(\.addContact, action: \.addContact) {
-    //   AddContactFeature()
-    // }
-    .ifLet(\.$destination, action: \.destination)
+    .ifLet(\.$destination, action: \.destination) {
+      /// 명시하지 않아도 Reducer 매크로가 자동으로 추론
+      // Destination()
+    }
     
+    /// [forEach]
+    /// 스택 기반 Navigate
+    /// 부모 상태의 내비게이션 스택 요소(StackState)에서 작동하는 부모 도메인(path)에
+    /// 자식 리듀서를 포함
     .forEach(\.path, action: \.path) {
       ContactDetailFeature()
     }
@@ -119,9 +116,12 @@ struct ContactsFeature {
 }
 
 extension ContactsFeature {
+  /// 내비게이션할 수 있는 모든 기능에 대한 도메인과 로직을 보유하는 열거형
   @Reducer
   enum Destination {
+    /// 실제 리듀서를 유지하고 있음
     case addContact(AddContactFeature)
+    
     case alert(AlertState<ContactsFeature.Action.Alert>)
   }
 }

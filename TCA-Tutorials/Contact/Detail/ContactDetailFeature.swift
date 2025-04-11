@@ -21,9 +21,12 @@ struct ContactDetailFeature {
     case delegate(Delegate)
     case deleteButtonTapped
     
+    /// Alert에서 사용될 액션을 정의
     enum Alert {
       case confirmDeletion
     }
+    
+    /// 부모가 수신할 수 있는 액션을 정의
     enum Delegate {
       case confirmDeletion
     }

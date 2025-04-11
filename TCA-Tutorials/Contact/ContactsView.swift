@@ -12,6 +12,9 @@ struct ContactsView: View {
   @Bindable var store: StoreOf<ContactsFeature>
   
   var body: some View {
+    /// 내비게이션 스택에 전달할 새로운 스토어를 생성하여 전달
+    /// 부모 도메인(ContactsFeature)에서
+    /// path에 해당하는 도메인에만 집중
     NavigationStack(
       path: $store.scope(
         state: \.path,
