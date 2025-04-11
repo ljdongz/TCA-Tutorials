@@ -21,7 +21,8 @@ struct AppFeature {
   }
   
   var body: some ReducerOf<Self> {
-    /// Scope : 부모 도메인의 하위 도메인(여기서는 tab1, tab2)에 집중하여 자식 리듀서를 실행
+    /// [Scope]
+    /// 부모 도메인의 하위 도메인(여기서는 tab1, tab2)에 집중하여 자식 리듀서를 실행
     /// 도메인 = Feature 구성 요소 (State, Action, Reducer, Environment)
     Scope(state: \.tab1, action: \.tab1) {
       CounterFeature()

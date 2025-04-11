@@ -19,6 +19,7 @@ struct AppView: View {
   
   var body: some View {
     TabView {
+      /// [store.scope]
       /// 자식 뷰에 전달할 새로운 스토어를 생성하여 전달
       /// 부모 도메인(AppFeature)에서 tab1에 해당하는 도메인에만 집중
       CounterView(

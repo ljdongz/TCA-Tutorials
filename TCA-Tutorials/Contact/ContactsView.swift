@@ -48,6 +48,10 @@ struct ContactsView: View {
     } destination: { store in
       ContactDetailView(store: store)
     }
+    
+    /// 이동될 뷰에 전달할 새로운 스토어를 생성하여 전달
+    /// 부모 도메인(ContactsFeature)에서
+    /// Destination.addContact에 해당하는 도메인에만 집중
     .sheet(item: $store.scope(
       state: \.destination?.addContact,
       action: \.destination.addContact
@@ -56,6 +60,10 @@ struct ContactsView: View {
         AddContactView(store: addContactStore)
       }
     }
+    
+    /// 알림 화면에 전달할 새로운 스토어를 생성하여 전달
+    /// 부모 도메인(ContactsFeature)에서
+    /// Destination.alert에 해당하는 도메인에만 집중
     .alert($store.scope(
       state: \.destination?.alert,
       action: \.destination.alert

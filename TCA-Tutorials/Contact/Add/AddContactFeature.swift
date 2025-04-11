@@ -17,12 +17,14 @@ struct AddContactFeature {
   
   enum Action {
     case cancelButtonTapped
+    
+    /// 부모가 들을 수 있고 해석할 수 있는 모든 action
     case delegate(Delegate)
     case saveButtonTapped
     case setName(String)
     
     @CasePathable
-    // 부모가 수신할 수 있는 액션을 정의
+    /// 부모가 수신할 수 있는 action을 정의
     enum Delegate: Equatable {
       case saveContact(Contact)
     }
@@ -38,12 +40,15 @@ struct AddContactFeature {
           await self.dismiss()
         }
         
+      /// 부모만이 위임된 action을 수신하고 응답할 수 있도록 어떤 로직도 실행하지 않음
       case .delegate:
         return .none
         
       case .saveButtonTapped:
         return .run { [contact = state.contact] send in
           await send(.delegate(.saveContact(contact)))
+          
+          /// dismiss()가 호출되면 부모 Feature의 PresentationState가 자동으로 nil로 설정됨
           await self.dismiss()
         }
         
