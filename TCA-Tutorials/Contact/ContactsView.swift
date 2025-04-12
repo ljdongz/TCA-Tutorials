@@ -23,7 +23,9 @@ struct ContactsView: View {
     ) {
       List {
         ForEach(store.contacts) { contact in
-          NavigationLink(state: ContactDetailFeature.State(contact: contact)) {
+          Button {
+            store.send(.detailButtonTapped(contact: contact))
+          } label: {
             HStack {
               Text(contact.name)
               Spacer()
@@ -35,7 +37,6 @@ struct ContactsView: View {
               }
             }
           }
-          .buttonStyle(.borderless)
         }
       }
       .navigationTitle("Contacts")
@@ -49,7 +50,10 @@ struct ContactsView: View {
         }
       }
     } destination: { store in
-      ContactDetailView(store: store)
+      switch store.case {
+      case .detail(let detailStore):
+        ContactDetailView(store: detailStore)
+      }
     }
     
     /// 이동될 뷰에 전달할 새로운 스토어를 생성하여 전달

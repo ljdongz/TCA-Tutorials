@@ -24,8 +24,8 @@ struct ContactsFeature {
     @Presents var destination: Destination.State?
     
     /// [StackState]
-    /// 현재 스택에 푸시된 데이터 목록 (여기서는 ContactDetailFeature.State)
-    var path = StackState<ContactDetailFeature.State>()
+    /// 현재 스택에 푸시된 데이터 목록 (스택 상태)
+    var path = StackState<Path.State>()
   }
   
   enum Action {
@@ -39,7 +39,8 @@ struct ContactsFeature {
     /// [StackActionOf]
     /// 요소를 스택에 푸시하거나 팝하는 것과 같이
     /// 스택 내에서 발생할 수 있는 작업이나 스택 내 특정 기능에서 발생하는 작업
-    case path(StackActionOf<ContactDetailFeature>)
+    case path(StackActionOf<Path>)
+    case detailButtonTapped(contact: Contact)
     
     /// [@CasePathable]
     /// key path dot-chaning 구문을 사용할 수 있도록 함 (ContactsFeatureTests.swift)
@@ -55,8 +56,8 @@ struct ContactsFeature {
   var body: some ReducerOf<Self> {
     Reduce { state, action in
       switch action {
-      
-      // MARK: - Destination을 사용한 예제
+        
+      // MARK: - Destination State
       case .addButtonTapped:
         state.destination = .addContact(
           AddContactFeature.State(
@@ -65,34 +66,53 @@ struct ContactsFeature {
         )
         return .none
         
-      /// [delegate]
-      /// 자식 Feature가 부모에게 원하는 작업을 알려주는 "위임 작업"
-      case let .destination(.presented(.addContact(.delegate(.saveContact(contact))))):
-        state.contacts.append(contact)
-        return .none
-        
-      case let .destination(.presented(.alert(.confirmDeletion(id: id)))):
-        state.contacts.remove(id: id)
-        return .none
-        
-        // 다른 destination 작업을 수행할 필요가 없음을 알림
-      case .destination:
-        return .none
-        
       case let .deleteButtonTapped(id: id):
         state.destination = .alert(.deleteConfirmation(id: id))
         
         return .none
         
-      /// id : StackElementID
-      case let .path(.element(id: id, action: .delegate(.confirmDeletion))):
-        /// path 배열에서 id가 일치하는 요소를 찾는 StackState의 subscript 문법
-        guard let detailState = state.path[id: id] else { return .none }
-        state.contacts.remove(id: detailState.contact.id)
+      // MARK: - Destination Action
+      case let .destination(action):
+        switch action {
+          
+          /// [delegate]
+          /// 자식 Feature가 부모에게 원하는 작업을 알려주는 "위임 작업"
+        case let .presented(.addContact(.delegate(.saveContact(contact)))):
+          state.contacts.append(contact)
+          return .none
+          
+        case let .presented(.alert(.confirmDeletion(id: id))):
+          state.contacts.remove(id: id)
+          return .none
+          
+          /// 다른 destination 작업을 수행할 필요가 없음을 알림
+        default:
+          return .none
+        }
+        
+        
+      // MARK: - Path State
+      case .detailButtonTapped(let contact):
+        state.path.append(.detail(ContactDetailFeature.State(contact: contact)))
         return .none
         
-      case .path:
-        return .none
+        
+      // MARK: - Path Action
+      case let .path(action):
+        switch action {
+          
+          /// id : StackElementID
+        case let .element(id: id, action: .detail(.delegate(.confirmDeletion))):
+          /// path 배열에서 id가 일치하는 요소를 찾는 StackState의 subscript 문법
+          guard let detailFeatureState = state.path[id: id]?.detail
+          else { return .none }
+          let contactId = detailFeatureState.contact.id
+          state.contacts.remove(id: contactId)
+          return .none
+          
+        default:
+          return .none
+        }
       }
     }
     /// [ifLet]
@@ -100,23 +120,24 @@ struct ContactsFeature {
     /// 부모 state의 옵셔널 프로퍼티(Destination.State?)에 대해 작동하는 부모 도메인(destination)에
     /// 자식 리듀서를 포함
     /// 부모 Feature와 자식 Feature를 통합
-    .ifLet(\.$destination, action: \.destination) {
-      /// 명시하지 않아도 Reducer 매크로가 자동으로 추론
-      // Destination()
-    }
+    .ifLet(\.$destination, action: \.destination) // {
+    /// 명시하지 않아도 Reducer 매크로가 자동으로 추론
+    // Destination()
+    // }
     
     /// [forEach]
     /// 스택 기반 Navigate
     /// 부모 상태의 내비게이션 스택 요소(StackState)에서 작동하는 부모 도메인(path)에
     /// 자식 리듀서를 포함
-    .forEach(\.path, action: \.path) {
-      ContactDetailFeature()
-    }
+    .forEach(\.path, action: \.path) // {
+    /// 명시하지 않아도 Reducer 매크로가 자동으로 추론
+    // Path()
+    // }
   }
 }
 
 extension ContactsFeature {
-  /// 내비게이션할 수 있는 모든 기능에 대한 도메인과 로직을 보유하는 열거형
+  /// 트리 기반 내비게이션 할 수 있는 모든 기능에 대한 도메인과 로직을 보유하는 열거형
   @Reducer
   enum Destination {
     /// 실제 리듀서를 유지하고 있음
@@ -124,9 +145,16 @@ extension ContactsFeature {
     
     case alert(AlertState<ContactsFeature.Action.Alert>)
   }
+  
+  /// 스택 기반 내비게이션 할 수 있는 모든 기능에 대한 도메인과 로직을 보유하는 열거형
+  @Reducer
+  enum Path {
+    case detail(ContactDetailFeature)
+  }
 }
 
 extension ContactsFeature.Destination.State: Equatable {}
+extension ContactsFeature.Path.State: Equatable {}
 
 extension AlertState where Action == ContactsFeature.Action.Alert {
   static func deleteConfirmation(id: UUID) -> Self {
@@ -137,6 +165,5 @@ extension AlertState where Action == ContactsFeature.Action.Alert {
         TextState("Delete")
       }
     }
-
   }
 }
