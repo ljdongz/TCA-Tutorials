@@ -9,22 +9,31 @@ import Foundation
 import ComposableArchitecture
 
 
-@preconcurrency
-struct NumberFactClient{
-    var fetch: (Int) async throws -> String
+protocol NumberFactClient: Sendable {
+  var fetch: @Sendable (Int) async throws -> String { get set }
 }
 
-extension NumberFactClient: DependencyKey {
-    static let liveValue = Self { number in
-        let (data, _) = try await URLSession.shared
-            .data(from: URL(string: "http://numbersapi.com/\(number)")!)
-        return String(decoding: data, as: UTF8.self)
-    }
+struct NumberFactClientImpl: NumberFactClient {
+  var fetch: @Sendable (Int) async throws -> String = { number in
+    let (data, _) = try await URLSession.shared
+      .data(from: URL(string: "http://numbersapi.com/\(number)")!)
+    return String(decoding: data, as: UTF8.self)
+  }
+}
+
+struct StubNumberFactClient: NumberFactClient {
+  var fetch: @Sendable (Int) async throws -> String = {
+    return "Stub: \($0)"
+  }
+}
+
+enum NumberFactClientKey: DependencyKey {
+  static let liveValue: any NumberFactClient = NumberFactClientImpl()
 }
 
 extension DependencyValues {
-    var numberFact: NumberFactClient {
-        get { self[NumberFactClient.self] }
-        set { self[NumberFactClient.self] = newValue }
-    }
+  var numberFact: any NumberFactClient {
+    get { self[NumberFactClientKey.self] }
+    set { self[NumberFactClientKey.self] = newValue }
+  }
 }
